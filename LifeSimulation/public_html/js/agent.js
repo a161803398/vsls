@@ -38,7 +38,7 @@ function Agent(theWorld, obj) {
     this.maxSpeed = 1 / this.size * INIT_SPEED_PARAM;
 
     this.energyLimit = Math.log(this.size) * INIT_ENERGY_PARAM;
-    this.energy = obj.energyTrans * this.energyLimit || this.energyLimit; //full energy first
+    this.energy = obj.energyTrans * obj.energy || this.energyLimit; //full energy first
     this.curDx = 0;
     this.curDy = 0;
     this.curX = obj.curX || this.world.height * Math.random();
@@ -51,18 +51,18 @@ Agent.prototype.changeSpeed = function () { //Acceleration
     if (this.active > Math.random()) {
         accX = randNeg(this.maxSpeed) / 2;
         accY = randNeg(this.maxSpeed) / 2;
-    }
 
-    if (this.curDx + accX >= this.maxSpeed) {
-        accX = this.maxSpeed - this.curDx;
-    } else if (this.curDx + accX <= -this.maxSpeed) {
-        accX = -this.maxSpeed - this.curDx;
-    }
+        if (this.curDx + accX >= this.maxSpeed) {
+            accX = this.maxSpeed - this.curDx;
+        } else if (this.curDx + accX <= -this.maxSpeed) {
+            accX = -this.maxSpeed - this.curDx;
+        }
 
-    if (this.curDy + accY >= this.maxSpeed) {
-        accY = this.maxSpeed - this.curDy;
-    } else if (this.curDy + accY <= -this.maxSpeed) {
-        accY = -this.maxSpeed - this.curDy;
+        if (this.curDy + accY >= this.maxSpeed) {
+            accY = this.maxSpeed - this.curDy;
+        } else if (this.curDy + accY <= -this.maxSpeed) {
+            accY = -this.maxSpeed - this.curDy;
+        }
     }
 
     this.curDx += accX;
