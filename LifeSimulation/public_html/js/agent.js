@@ -9,25 +9,61 @@ var INIT_SPEED_PARAM = 20;
 var INIT_ENERGY_PARAM = 100;
 var RESISTANCE_PARAM = 1.1;
 
-function Agent(theWorld, theSize, x, y) {
+function randNeg(num) { //return +num ~ -num
+    if (!isNaN(num))
+        return Math.random() * 2 * num - num;
+}
+
+function inRange(num, tar1, tar2) {
+    if (!isNaN(num))
+        return num >= tar1 ? (num <= tar2 ? num : tar2) : tar1;
+}
+
+function largeThan(num, tar) {
+    if (!isNaN(num))
+        return num >= tar ? num : tar;
+}
+function smallThan(num, tar) {
+    if (!isNaN(num))
+        return num <= tar ? num : tar;
+}
+
+function Agent(theWorld, obj) {
     this.world = theWorld;
-    this.size = theSize || (Math.random() * INIT_SIZE_PARAM + 5);
-    if (this.size < 3)
-        this.size = 3;
-    //this.addSpeed = addSpeed || (Math.random() * INIT_SPEED_ADD_PARAM + 10);
+    obj = obj || {};
+    this.size = largeThan(obj.size + randNeg(2), 3) || (Math.random() * INIT_SIZE_PARAM + 5);
+    this.energyTrans = inRange(obj.energyTrans + randNeg(0.1), 0, 1) || Math.random();
+    this.active = inRange(obj.active + randNeg(0.1), 0, 1) || Math.random();
+
     this.maxSpeed = 1 / this.size * INIT_SPEED_PARAM;
 
     this.energyLimit = Math.log(this.size) * INIT_ENERGY_PARAM;
-    this.energy = this.energyLimit; //full energy first
+    this.energy = obj.energyTrans * this.energyLimit || this.energyLimit; //full energy first
     this.curDx = 0;
     this.curDy = 0;
-    this.curX = x || this.world.height * Math.random();
-    this.curY = y || this.world.width * Math.random();
+    this.curX = obj.curX || this.world.height * Math.random();
+    this.curY = obj.curY || this.world.width * Math.random();
 }
 
-Agent.prototype.changeSpeed = function() { //Acceleration
-    var accX = this.maxSpeed / 2 - (Math.random() * this.maxSpeed);
-    var accY = this.maxSpeed / 2 - (Math.random() * this.maxSpeed);
+Agent.prototype.changeSpeed = function () { //Acceleration
+    var accX = 0, accY = 0;
+
+    if (this.active > Math.random()) {
+        accX = randNeg(this.maxSpeed) / 2;
+        accY = randNeg(this.maxSpeed) / 2;
+    }
+
+    if (this.curDx + accX >= this.maxSpeed) {
+        accX = this.maxSpeed - this.curDx;
+    } else if (this.curDx + accX <= -this.maxSpeed) {
+        accX = -this.maxSpeed - this.curDx;
+    }
+
+    if (this.curDy + accY >= this.maxSpeed) {
+        accY = this.maxSpeed - this.curDy;
+    } else if (this.curDy + accY <= -this.maxSpeed) {
+        accY = -this.maxSpeed - this.curDy;
+    }
 
     this.curDx += accX;
     this.curDy += accY;
@@ -35,7 +71,7 @@ Agent.prototype.changeSpeed = function() { //Acceleration
     this.energy -= accX * accX + accY * accY;
 };
 
-Agent.prototype.move = function() { //Acceleration
+Agent.prototype.move = function () { //Acceleration
     this.curX += this.curDx;
     this.curY += this.curDy;
 
@@ -56,35 +92,37 @@ Agent.prototype.move = function() { //Acceleration
     this.curDy /= RESISTANCE_PARAM;
 };
 
-Agent.prototype.isLive = function() {
+Agent.prototype.isLive = function () {
     return this.energy > 0;
 };
 
-Agent.prototype.isReproduction = function() {
+Agent.prototype.isReproduction = function () {
     if (this.energy > this.energyLimit) {
-        this.energy *= 0.8;
+        this.energy *= (1 - this.energyTrans);
         return true;
     }
     return false;
 };
 
-Agent.prototype.behave = function() {
+Agent.prototype.behave = function () {
     this.changeSpeed();
     this.eat();
     this.move();
     //idle cost
     this.energy -= this.size * this.size / 1000;
 };
-Agent.prototype.draw = function() {
+Agent.prototype.draw = function () {
     var drawPaper = this.world.paper;
-    drawPaper.fillStyle = "rgb(" + Math.floor(255 * this.energy / this.energyLimit) + ",0,0)";
+    drawPaper.fillStyle = "rgb(" + Math.floor(255 * this.energy / this.energyLimit) + "," +
+            Math.floor(255 * this.active * this.energy / this.energyLimit) + "," +
+            Math.floor(255 * this.energyTrans * this.energy / this.energyLimit) + ")";
     drawPaper.beginPath();
     drawPaper.arc(this.curX, this.curY, this.size, 0, Math.PI * 2, true);
     drawPaper.closePath();
     drawPaper.fill();
 };
 
-Agent.prototype.eat = function() {
+Agent.prototype.eat = function () {
     var halfSize = this.size / 2;
     var eatX = Math.floor(this.curX - halfSize);
     var eatY = Math.floor(this.curY - halfSize);

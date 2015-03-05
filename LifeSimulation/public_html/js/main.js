@@ -6,8 +6,8 @@
 
 
 
-$(function() {
-    var failTimes = 0;
+$(function () {
+    var extinct = 0;
     var worldCanvas = document.getElementById("worldCanvas");
     var FOOD_SIZE = 5000;
     var theWorld = {
@@ -17,7 +17,7 @@ $(function() {
         map: []
     };
 
-    theWorld.init = function() {
+    theWorld.init = function () {
         for (var i = 0; i < this.width; i++) {
             this.map[i] = [];
             for (var j = 0; j < this.height; j++) {
@@ -27,7 +27,7 @@ $(function() {
         this.initFood();
     };
 
-    theWorld.insertFood = function() {
+    theWorld.insertFood = function () {
         var notInsert = true;
         while (notInsert) {
             var randomX = Math.floor(this.width * Math.random());
@@ -39,7 +39,7 @@ $(function() {
 
     };
 
-    theWorld.initFood = function() {
+    theWorld.initFood = function () {
         for (var i = 0; i < FOOD_SIZE; i++) {
             theWorld.insertFood();
             /*
@@ -52,7 +52,7 @@ $(function() {
     };
 
 
-    theWorld.drawFood = function() {
+    theWorld.drawFood = function () {
         this.paper.fillStyle = "#00FF00";
         for (var i = 0; i < this.width; i++) {
             for (var j = 0; j < this.height; j++) {
@@ -62,10 +62,10 @@ $(function() {
         }
     };
 
-    theWorld.removeFood = function(x, y) {
+    theWorld.removeFood = function (x, y) {
         if (this.map[x][y].hasFood) {
             this.map[x][y].hasFood = false;
-            setTimeout(function() {
+            setTimeout(function () {
                 theWorld.insertFood();
             }, Math.floor(10000 * Math.random()) + 10000);
 
@@ -84,24 +84,15 @@ $(function() {
         agentArr[i] = new Agent(theWorld);
     }
 
-    setInterval(function() {
+    setInterval(function () {
         worldCanvas.width = worldCanvas.width;
         theWorld.drawFood();
 
         for (var i = 0; i < agentArr.length; i++) {
             if (agentArr[i].isLive()) {
                 agentArr[i].behave();
-
                 if (agentArr[i].isReproduction()) {
-                    var parent = agentArr[i];
-                    var tmpAgent = new Agent(
-                            theWorld,
-                            (parent.size + Math.random() * 4 - 2),
-                            parent.curX,
-                            parent.curY
-                            );
-                    tmpAgent.energy *= 0.2;
-                    agentArr[agentArr.length] = tmpAgent;
+                    agentArr[agentArr.length] = new Agent(theWorld, agentArr[i]);
                 }
                 agentArr[i].draw();
             } else {
@@ -114,12 +105,12 @@ $(function() {
             sum += agentArr[i].size;
         }
 
-        $("#avgSizeLabel").text("Average Size" + (sum / agentArr.length));
-        $("#countLabel").text("Count" + agentArr.length);
-        $("#failTimesLabel").text("Fail Times" + failTimes);
+        $("#avgSizeLabel").text("Average Size: " + (sum / agentArr.length));
+        $("#countLabel").text("life Count: " + agentArr.length);
+        $("#extinctLabel").text("extinct Times: " + extinct);
 
-        if (agentArr.length == 0) {
-            failTimes++;
+        if (agentArr.length === 0) {
+            extinct++;
             theWorld.init();
             agentCount = 10;
             for (var i = 0; i < agentCount; i++) {
