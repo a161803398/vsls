@@ -17,6 +17,8 @@ $(function () {
         map: []
     };
 
+    var toAddTimes = [];
+
     theWorld.init = function () {
         for (var i = 0; i < this.width; i++) {
             this.map[i] = [];
@@ -65,9 +67,11 @@ $(function () {
     theWorld.removeFood = function (x, y) {
         if (this.map[x][y].hasFood) {
             this.map[x][y].hasFood = false;
-            setTimeout(function () {
-                theWorld.insertFood();
-            }, Math.floor(10000 * Math.random()) + 10000);
+            toAddTimes[toAddTimes.length] = Math.floor(1000 * Math.random()) + 1000;
+
+//            setTimeout(function () {
+//                theWorld.insertFood();
+//            }, Math.floor(10000 * Math.random()) + 10000);
 
             return true;
         }
@@ -116,6 +120,14 @@ $(function () {
             for (var i = 0; i < agentCount; i++) {
                 agentArr[i] = new Agent(theWorld);
             }
+        }
+        for (var i = 0; i < toAddTimes.length; i++) {
+            if (toAddTimes[i] <= 0) {
+                theWorld.insertFood();
+                toAddTimes.splice(i, 1);
+                i--;
+            }
+            toAddTimes[i]--;
         }
 
     }, 1);

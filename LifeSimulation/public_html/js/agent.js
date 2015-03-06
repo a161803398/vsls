@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-var INIT_SIZE_PARAM = 1;
+var INIT_SIZE_PARAM = 10;
 var INIT_SPEED_ADD_PARAM = 15;
-var INIT_SPEED_PARAM = 20;
+var INIT_SPEED_PARAM = 10;
 var INIT_ENERGY_PARAM = 100;
 var RESISTANCE_PARAM = 1.1;
 
@@ -31,14 +31,15 @@ function smallThan(num, tar) {
 function Agent(theWorld, obj) {
     this.world = theWorld;
     obj = obj || {};
-    this.size = largeThan(obj.size + randNeg(2), 3) || (Math.random() * INIT_SIZE_PARAM + 5);
-    this.energyTrans = inRange(obj.energyTrans + randNeg(0.1), 0, 1) || Math.random();
-    this.active = inRange(obj.active + randNeg(0.1), 0, 1) || Math.random();
+    this.size = largeThan(obj.size + randNeg(1), 3) || (Math.random() * INIT_SIZE_PARAM + 5);
+    this.energyTrans = inRange(obj.energyTrans + randNeg(0.05), 0, 1) || Math.random();
+    this.active = inRange(obj.active + randNeg(0.05), 0, 1) || Math.random();
 
-    this.maxSpeed = 1 / this.size * INIT_SPEED_PARAM;
+    this.acceler = obj.acceler + randNeg(0.05) || Math.random() * INIT_SPEED_PARAM;
+    //this.maxSpeed = 1 / this.size * INIT_SPEED_PARAM;
 
     this.energyLimit = Math.log(this.size) * INIT_ENERGY_PARAM;
-    this.energy = obj.energyTrans * obj.energy || this.energyLimit; //full energy first
+    this.energy = obj.energyTrans * obj.energyLimit || this.energyLimit; //full energy first
     this.curDx = 0;
     this.curDy = 0;
     this.curX = obj.curX || this.world.height * Math.random();
@@ -46,29 +47,29 @@ function Agent(theWorld, obj) {
 }
 
 Agent.prototype.changeSpeed = function () { //Acceleration
-    var accX = 0, accY = 0;
-
-    if (this.active > Math.random()) {
-        accX = randNeg(this.maxSpeed) / 2;
-        accY = randNeg(this.maxSpeed) / 2;
-
-        if (this.curDx + accX >= this.maxSpeed) {
-            accX = this.maxSpeed - this.curDx;
-        } else if (this.curDx + accX <= -this.maxSpeed) {
-            accX = -this.maxSpeed - this.curDx;
-        }
-
-        if (this.curDy + accY >= this.maxSpeed) {
-            accY = this.maxSpeed - this.curDy;
-        } else if (this.curDy + accY <= -this.maxSpeed) {
-            accY = -this.maxSpeed - this.curDy;
-        }
-    }
-
+    var accX = randNeg(this.acceler), accY = randNeg(this.acceler);
+    /*
+     if (this.active > Math.random()) {
+     accX = randNeg(this.maxSpeed) / 2;
+     accY = randNeg(this.maxSpeed) / 2;
+     
+     if (this.curDx + accX >= this.maxSpeed) {
+     accX = this.maxSpeed - this.curDx;
+     } else if (this.curDx + accX <= -this.maxSpeed) {
+     accX = -this.maxSpeed - this.curDx;
+     }
+     
+     if (this.curDy + accY >= this.maxSpeed) {
+     accY = this.maxSpeed - this.curDy;
+     } else if (this.curDy + accY <= -this.maxSpeed) {
+     accY = -this.maxSpeed - this.curDy;
+     }
+     }
+     */
     this.curDx += accX;
     this.curDy += accY;
 
-    this.energy -= accX * accX + accY * accY;
+    this.energy -= accX * accX + accY * accY * this.size * this.size / 1000;
 };
 
 Agent.prototype.move = function () { //Acceleration
